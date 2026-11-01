@@ -7,7 +7,7 @@ import { int, month, pct } from "../../lib/format";
 import { setParam, useRoute } from "../../lib/router";
 import { FindingPager } from ".";
 
-const axis = { stroke: "var(--line-strong)", tickLine: false } as const;
+const axis = { stroke: "var(--line-strong)", tickLine: false, tick: { fill: "var(--muted)", fontSize: 12 } } as const;
 
 export default function RecruiterTrust() {
   const { params } = useRoute();

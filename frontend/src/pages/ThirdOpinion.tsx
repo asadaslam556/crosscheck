@@ -5,7 +5,7 @@ import { Callout, Fact, Legend, Loaded, PageHead, Panel } from "../components/ui
 import { useApi, type Schemas } from "../lib/api";
 import { dec, int, pct, pValue } from "../lib/format";
 
-const axis = { stroke: "var(--line-strong)", tickLine: false } as const;
+const axis = { stroke: "var(--line-strong)", tickLine: false, tick: { fill: "var(--muted)", fontSize: 12 } } as const;
 
 export default function ThirdOpinion() {
   const result = useApi<Schemas["ThirdOpinion"]>("third-opinion");

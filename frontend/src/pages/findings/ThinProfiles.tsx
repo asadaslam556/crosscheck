@@ -31,7 +31,7 @@ export default function ThinProfiles() {
           const rest = bandData.segments.filter((s) => s !== thin);
           const restMean = rest.reduce((s, r) => s + r.mean_llm_score * r.applications, 0) / rest.reduce((s, r) => s + r.applications, 0);
           const restRate = rest.reduce((s, r) => s + r.positives, 0) / rest.reduce((s, r) => s + r.decided, 0);
-          const axis = { stroke: "var(--line-strong)", tickLine: false } as const;
+          const axis = { stroke: "var(--line-strong)", tickLine: false, tick: { fill: "var(--muted)", fontSize: 12 } } as const;
 
           return (
             <div className="stack">
@@ -48,7 +48,7 @@ export default function ThinProfiles() {
               <div className="grid-2">
                 <Panel title="Mean LLM score by profile completeness" note="A cliff, not a slope: the step sits exactly at 0.4.">
                   <ResponsiveContainer width="100%" height={260}>
-                    <ComposedChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+                    <ComposedChart data={rows} margin={{ top: 20, right: 8, bottom: 0, left: 0 }}>
                       <CartesianGrid vertical={false} />
                       <XAxis dataKey="decile" {...axis} />
                       <YAxis domain={[50, 80]} ticks={[50, 60, 70, 80]} width={52} {...axis} />
@@ -61,7 +61,7 @@ export default function ThinProfiles() {
 
                 <Panel title="Share moved forward by profile completeness" note="The outcome goes the other way: thin profiles convert slightly worse. Shaded band is the 95% interval.">
                   <ResponsiveContainer width="100%" height={260}>
-                    <ComposedChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+                    <ComposedChart data={rows} margin={{ top: 20, right: 8, bottom: 0, left: 0 }}>
                       <CartesianGrid vertical={false} />
                       <XAxis dataKey="decile" {...axis} />
                       <YAxis domain={[0.3, 0.7]} ticks={[0.3, 0.4, 0.5, 0.6, 0.7]} tickFormatter={(v: number) => `${Math.round(v * 100)}%`} width={52} {...axis} />

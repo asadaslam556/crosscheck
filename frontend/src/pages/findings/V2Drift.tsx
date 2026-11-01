@@ -9,7 +9,7 @@ import { FindingPager } from ".";
 
 const V1 = { stroke: "var(--llm-v1)", strokeDasharray: "5 4" };
 const V2 = { stroke: "var(--llm)" };
-const axis = { stroke: "var(--line-strong)", tickLine: false } as const;
+const axis = { stroke: "var(--line-strong)", tickLine: false, tick: { fill: "var(--muted)", fontSize: 12 } } as const;
 const percent = (v: number) => `${Math.round(v * 100)}%`;
 
 export default function V2Drift() {
