@@ -17,11 +17,15 @@ from sqlalchemy.orm import Session
 
 SQL_DIR = Path(__file__).parent / "sql"
 
+# The "overall" segment groups by a constant. The quotes make it a SQL string literal, so every
+# row lands in one segment; without them it would name a column that does not exist.
+OVERALL = "'overall'"
+
 # Public segment name -> the column it maps to in scored_applications.
 # "country" resolves to the job's country rather than the candidate's: the job posting is
 # what defines the market being served, and 94% of applications are same-country anyway.
 DIMENSIONS: dict[str, str] = {
-    "overall": "'overall'",
+    "overall": OVERALL,
     "job_family": "job_family",
     "country": "job_country",
     "seniority": "seniority",

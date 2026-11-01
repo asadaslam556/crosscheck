@@ -43,6 +43,9 @@ class TestResolveDimension:
     def test_country_maps_to_the_job_side(self):
         assert queries.resolve_dimension("country") == "job_country"
 
+    def test_overall_is_a_sql_literal_not_a_column(self):
+        assert queries.resolve_dimension("overall") == "'overall'"
+
     def test_rejects_anything_outside_the_whitelist(self):
         # The dimension is interpolated into SQL text, so this rejection is the thing
         # standing between a query parameter and the query itself.
