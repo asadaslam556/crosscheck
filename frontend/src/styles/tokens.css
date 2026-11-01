@@ -1,0 +1,97 @@
+/* One meaning per colour, everywhere: blue is the rule scorer, amber the LLM, teal Jev.
+   Outcomes are ink. Status always comes with an icon and a word as well as a colour. */
+
+:root {
+  color-scheme: light;
+
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --ink: #111827;
+  --ink-2: #374151;
+  --muted: #5d6676;
+  --faint: #8a93a3;
+  --line: #e2e6ec;
+  --line-strong: #cdd3dc;
+  --focus: #2563eb;
+
+  --rule: #2563eb;
+  --rule-soft: #dbe6fd;
+  --llm: #c26a05;
+  --llm-v1: #e8a64a;
+  --llm-soft: #fbead2;
+  --jev: #0f8a7e;
+  --outcome: #111827;
+
+  --ok: #15803d;
+  --ok-soft: #e7f6ec;
+  --warn: #a15c07;
+  --warn-soft: #fdf3e2;
+  --bad: #b42318;
+  --bad-soft: #fdecea;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
+
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0b1120;
+    --surface: #111a2c;
+    --surface-2: #17223a;
+    --ink: #e7ecf4;
+    --ink-2: #c4ccd9;
+    --muted: #97a2b6;
+    --faint: #6c7890;
+    --line: #223048;
+    --line-strong: #2f3f5c;
+    --focus: #7aa7ff;
+    --rule: #6ea0ff;
+    --rule-soft: #1c2c4d;
+    --llm: #f2a93b;
+    --llm-v1: #a87632;
+    --llm-soft: #3a2a12;
+    --jev: #34c3b4;
+    --outcome: #e7ecf4;
+    --ok: #4cc27a;
+    --ok-soft: #10291c;
+    --warn: #f0b34e;
+    --warn-soft: #33250f;
+    --bad: #f27a6e;
+    --bad-soft: #3a1714;
+    --shadow: none;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1120;
+  --surface: #111a2c;
+  --surface-2: #17223a;
+  --ink: #e7ecf4;
+  --ink-2: #c4ccd9;
+  --muted: #97a2b6;
+  --faint: #6c7890;
+  --line: #223048;
+  --line-strong: #2f3f5c;
+  --focus: #7aa7ff;
+  --rule: #6ea0ff;
+  --rule-soft: #1c2c4d;
+  --llm: #f2a93b;
+  --llm-v1: #a87632;
+  --llm-soft: #3a2a12;
+  --jev: #34c3b4;
+  --outcome: #e7ecf4;
+  --ok: #4cc27a;
+  --ok-soft: #10291c;
+  --warn: #f0b34e;
+  --warn-soft: #33250f;
+  --bad: #f27a6e;
+  --bad-soft: #3a1714;
+  --shadow: none;
+}

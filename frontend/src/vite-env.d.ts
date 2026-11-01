@@ -1,7 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_API_BASE?: string;
+  /** "static" reads pre-exported JSON from /data instead of calling the API. */
+  readonly VITE_DATA_MODE?: string;
 }
 
 interface ImportMeta {
