@@ -3,6 +3,8 @@
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app import schemas
@@ -24,9 +26,13 @@ ExcludeFamily = Annotated[
 ]
 
 
-@router.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+@router.get("/health", response_model=schemas.Health, responses={503: {"model": schemas.Health}})
+def health(session: SessionDep):
+    # Touches the database, so a container that is up but cannot reach Postgres reports it.
+    try:
+        return service.health(session)
+    except SQLAlchemyError:
+        return JSONResponse(status_code=503, content={"status": "unavailable"})
 
 
 @router.get("/overview", response_model=schemas.Overview)

@@ -12,6 +12,11 @@ from pydantic import BaseModel
 Row = dict[str, Any]
 
 
+class Health(BaseModel):
+    status: str
+    tables: dict[str, int] | None = None
+
+
 class ScorerMetrics(BaseModel):
     n: int
     auc: float | None

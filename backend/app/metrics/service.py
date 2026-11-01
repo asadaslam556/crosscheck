@@ -46,6 +46,10 @@ def _scorer_metrics(labels: list[int], scores: list[float], threshold: float) ->
     }
 
 
+def health(session: Session) -> dict[str, Any]:
+    return {"status": "ok", "tables": queries.run_one(session, "table_counts")}
+
+
 def overview(session: Session) -> dict[str, Any]:
     counts = queries.run_one(session, "overview")
     pooled = effectiveness(session, exclude_family=None)

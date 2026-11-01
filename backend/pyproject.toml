@@ -18,6 +18,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.3",
+    "httpx>=0.28",
     # Used only to cross-check the hand-written AUC in tests, never imported by the app.
     "scikit-learn>=1.5",
     "ruff>=0.17",
@@ -26,6 +27,10 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+filterwarnings = [
+    # Starlette wants httpx2 for TestClient; httpx still works and is what FastAPI documents.
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]
 
 [tool.setuptools]
 packages = ["app"]

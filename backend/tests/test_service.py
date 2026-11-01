@@ -50,6 +50,16 @@ class TestResolveDimension:
             queries.resolve_dimension("job_family; DROP TABLE applications")
 
 
+class TestHealth:
+    def test_reports_table_counts(self, stub_queries):
+        stub_queries["table_counts"] = [
+            {"candidates": 1500, "jobs": 80, "applications": 6000, "recruiter_events": 11758}
+        ]
+        result = service.health(None)
+        assert result["status"] == "ok"
+        assert result["tables"]["applications"] == 6000
+
+
 class TestAgreement:
     def test_rule_wins_when_its_solo_calls_convert_better(self, stub_queries):
         stub_queries["disagreement_outcomes"] = [
