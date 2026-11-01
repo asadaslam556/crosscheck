@@ -180,7 +180,14 @@ def quality_gate(session: Session) -> dict[str, Any]:
     """
     rows = queries.run(session, "version_scores")
 
-    versions = sorted({row["llm_model_version"] for row in rows})
+    # Release order is the order each version first scored an application. Sorting the names
+    # instead would put "scorer-v10" before "scorer-v2".
+    first_seen: dict[str, Any] = {}
+    for row in rows:
+        version = row["llm_model_version"]
+        if version not in first_seen or row["created_at"] < first_seen[version]:
+            first_seen[version] = row["created_at"]
+    versions = sorted(first_seen, key=first_seen.__getitem__)
     if len(versions) < 2:
         return {"status": "skipped", "reason": "fewer than two model versions present"}
 

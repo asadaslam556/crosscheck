@@ -120,10 +120,23 @@ class TestSegments:
 
 
 class TestQualityGate:
-    @staticmethod
-    def version_rows(version, llm_scores, rule_score=0.5):
+    # When each version first scored an application. The gate orders versions by this.
+    RELEASED = {
+        "scorer-v1": "2025-09-01",
+        "scorer-v2": "2026-03-01",
+        "scorer-v3": "2026-05-01",
+        "scorer-v10": "2026-05-01",
+    }
+
+    @classmethod
+    def version_rows(cls, version, llm_scores, rule_score=0.5):
         return [
-            {"llm_model_version": version, "llm_score": score, "rule_score": rule_score}
+            {
+                "llm_model_version": version,
+                "llm_score": score,
+                "rule_score": rule_score,
+                "created_at": cls.RELEASED[version],
+            }
             for score in llm_scores
         ]
 
@@ -153,6 +166,17 @@ class TestQualityGate:
         result = service.quality_gate(None)
         assert result["baseline_version"] == "scorer-v2"
         assert result["current_version"] == "scorer-v3"
+
+    def test_orders_versions_by_release_date_not_name(self, stub_queries):
+        # As text, "scorer-v10" sorts before "scorer-v2".
+        stub_queries["version_scores"] = (
+            self.version_rows("scorer-v10", [90] * 50)
+            + self.version_rows("scorer-v1", [10] * 50)
+            + self.version_rows("scorer-v2", [50] * 50)
+        )
+        result = service.quality_gate(None)
+        assert result["baseline_version"] == "scorer-v2"
+        assert result["current_version"] == "scorer-v10"
 
     def test_reports_the_flag_rate_shift_at_the_product_threshold(self, stub_queries):
         # Every v2 score clears the flag threshold, none of the v1 scores do.

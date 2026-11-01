@@ -3,5 +3,6 @@
 -- not of the recruiter decisions, so it should be measured on everything that was scored.
 SELECT llm_model_version,
        llm_score::float8  AS llm_score,
-       rule_score::float8 AS rule_score
+       rule_score::float8 AS rule_score,
+       created_at
 FROM scored_applications;
