@@ -11,8 +11,8 @@ sklearn on random data.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from math import log, sqrt
-from typing import Sequence
 
 import numpy as np
 
@@ -128,4 +128,4 @@ def population_stability_index(
     base_share = np.clip(np.histogram(base, bins=edges)[0] / len(base), 1e-6, None)
     curr_share = np.clip(np.histogram(curr, bins=edges)[0] / len(curr), 1e-6, None)
 
-    return float(sum((c - b) * log(c / b) for b, c in zip(base_share, curr_share)))
+    return float(sum((c - b) * log(c / b) for b, c in zip(base_share, curr_share, strict=True)))

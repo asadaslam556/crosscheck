@@ -53,7 +53,11 @@ def overview(session: Session) -> dict[str, Any]:
 
     return {
         "counts": counts,
-        "pooled": {"rule": pooled["rule"]["auc"], "llm": pooled["llm"]["auc"], "n": pooled["rule"]["n"]},
+        "pooled": {
+            "rule": pooled["rule"]["auc"],
+            "llm": pooled["llm"]["auc"],
+            "n": pooled["rule"]["n"],
+        },
         "excluding_healthcare": {
             "rule": without_healthcare["rule"]["auc"],
             "llm": without_healthcare["llm"]["auc"],
@@ -64,7 +68,9 @@ def overview(session: Session) -> dict[str, Any]:
 
 
 def effectiveness(session: Session, exclude_family: str | None = None) -> dict[str, Any]:
-    rows = queries.run(session, "labeled_scores", dimension="overall", exclude_family=exclude_family)
+    rows = queries.run(
+        session, "labeled_scores", dimension="overall", exclude_family=exclude_family
+    )
     labels = [row["label"] for row in rows]
 
     return {
@@ -83,7 +89,9 @@ def agreement(session: Session, exclude_family: str | None = None) -> dict[str, 
     quadrants = queries.run(session, "disagreement_outcomes", exclude_family=exclude_family)
 
     decided = sum(row["decided"] for row in quadrants)
-    agreed = sum(row["decided"] for row in quadrants if row["quadrant"] in ("both_high", "both_low"))
+    agreed = sum(
+        row["decided"] for row in quadrants if row["quadrant"] in ("both_high", "both_low")
+    )
     by_quadrant = {row["quadrant"]: row for row in quadrants}
 
     def rate(quadrant: str) -> float | None:
@@ -184,7 +192,9 @@ def quality_gate(session: Session) -> dict[str, Any]:
         [row["llm_score"] for row in baseline], [row["llm_score"] for row in current], LLM_PSI_EDGES
     )
     rule_psi = population_stability_index(
-        [row["rule_score"] for row in baseline], [row["rule_score"] for row in current], RULE_PSI_EDGES
+        [row["rule_score"] for row in baseline],
+        [row["rule_score"] for row in current],
+        RULE_PSI_EDGES,
     )
 
     threshold = settings.llm_flag_threshold

@@ -29,7 +29,9 @@ TABLES = [
 ]
 
 
-def copy_csv(cursor: psycopg.Cursor, table: str, path: Path, force_null: tuple[str, ...] | None) -> int:
+def copy_csv(
+    cursor: psycopg.Cursor, table: str, path: Path, force_null: tuple[str, ...] | None
+) -> int:
     options = ["FORMAT csv", "HEADER true"]
     if force_null:
         options.append(f"FORCE_NULL ({', '.join(force_null)})")

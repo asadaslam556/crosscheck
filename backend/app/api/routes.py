@@ -12,6 +12,8 @@ from app.metrics.queries import DIMENSIONS
 
 router = APIRouter(prefix="/api")
 
+SessionDep = Annotated[Session, Depends(get_session)]
+
 # Reused by three endpoints. Annotated keeps it a type, not a shared mutable default.
 ExcludeFamily = Annotated[
     str | None,
@@ -28,30 +30,30 @@ def health() -> dict[str, str]:
 
 
 @router.get("/overview", response_model=schemas.Overview)
-def get_overview(session: Session = Depends(get_session)):
+def get_overview(session: SessionDep):
     return service.overview(session)
 
 
 @router.get("/effectiveness", response_model=schemas.Effectiveness)
 def get_effectiveness(
+    session: SessionDep,
     exclude_family: ExcludeFamily = None,
-    session: Session = Depends(get_session),
 ):
     return service.effectiveness(session, exclude_family=exclude_family)
 
 
 @router.get("/agreement", response_model=schemas.Agreement)
 def get_agreement(
+    session: SessionDep,
     exclude_family: ExcludeFamily = None,
-    session: Session = Depends(get_session),
 ):
     return service.agreement(session, exclude_family=exclude_family)
 
 
 @router.get("/segments", response_model=schemas.Segments)
 def get_segments(
+    session: SessionDep,
     dimension: str = Query("job_family", description=f"One of: {', '.join(DIMENSIONS)}"),
-    session: Session = Depends(get_session),
 ):
     try:
         return service.segments(session, dimension=dimension)
@@ -61,18 +63,18 @@ def get_segments(
 
 @router.get("/calibration", response_model=schemas.Calibration)
 def get_calibration(
+    session: SessionDep,
     scorer: Literal["llm", "rule"] = "llm",
     exclude_family: ExcludeFamily = None,
-    session: Session = Depends(get_session),
 ):
     return service.calibration(session, scorer=scorer, exclude_family=exclude_family)
 
 
 @router.get("/recruiter-behaviour", response_model=schemas.RecruiterBehaviour)
-def get_recruiter_behaviour(session: Session = Depends(get_session)):
+def get_recruiter_behaviour(session: SessionDep):
     return service.recruiter_behaviour(session)
 
 
 @router.get("/quality-gate", response_model=schemas.QualityGate)
-def get_quality_gate(session: Session = Depends(get_session)):
+def get_quality_gate(session: SessionDep):
     return service.quality_gate(session)

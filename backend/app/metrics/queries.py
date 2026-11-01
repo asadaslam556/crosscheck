@@ -8,7 +8,7 @@ query text.
 
 from __future__ import annotations
 
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 from typing import Any
 
@@ -30,7 +30,7 @@ DIMENSIONS: dict[str, str] = {
 }
 
 
-@lru_cache(maxsize=None)
+@cache
 def _read(name: str) -> str:
     path = SQL_DIR / f"{name}.sql"
     if not path.exists():
@@ -40,7 +40,9 @@ def _read(name: str) -> str:
 
 def resolve_dimension(dimension: str) -> str:
     if dimension not in DIMENSIONS:
-        raise ValueError(f"Unknown dimension '{dimension}'. Expected one of: {', '.join(DIMENSIONS)}")
+        raise ValueError(
+            f"Unknown dimension '{dimension}'. Expected one of: {', '.join(DIMENSIONS)}"
+        )
     return DIMENSIONS[dimension]
 
 
