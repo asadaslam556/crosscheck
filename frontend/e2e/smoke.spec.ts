@@ -47,3 +47,9 @@ test("a v2 threshold of 78 brings the flag rate back to v1's", async ({ page }) 
   await page.goto("#/findings/v2-drift?threshold=78");
   await expect(page.getByText("At 78, v2 flags about as many applications as v1 did at 70")).toBeVisible();
 });
+
+test("Jev is graded next to the two scorers", async ({ page }) => {
+  await page.goto("#/third-opinion");
+  await expect(page.getByText("Useful, but not a replacement.")).toBeVisible();
+  await expect(page.getByText("0.671")).toBeVisible();
+});

@@ -51,7 +51,7 @@ export default function ThinProfiles() {
                     <ComposedChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                       <CartesianGrid vertical={false} />
                       <XAxis dataKey="decile" {...axis} />
-                      <YAxis domain={[50, 80]} ticks={[50, 60, 70, 80]} width={44} {...axis} />
+                      <YAxis domain={[50, 80]} ticks={[50, 60, 70, 80]} width={52} {...axis} />
                       <ReferenceLine x="0.4" stroke="var(--faint)" strokeDasharray="3 3" label={{ value: "0.4", position: "top", fill: "var(--muted)", fontSize: 11 }} />
                       <Tooltip content={<Tip format={(v) => v.toFixed(1)} labelFormat={(l) => `Completeness ${l}–${(Number(l) + 0.1).toFixed(1)}`} />} />
                       <Line type="linear" dataKey="mean" name="Mean LLM score" stroke="var(--llm)" strokeWidth={2.5} dot={{ r: 3.5, fill: "var(--llm)" }} />
@@ -64,7 +64,7 @@ export default function ThinProfiles() {
                     <ComposedChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                       <CartesianGrid vertical={false} />
                       <XAxis dataKey="decile" {...axis} />
-                      <YAxis domain={[0.3, 0.7]} ticks={[0.3, 0.4, 0.5, 0.6, 0.7]} tickFormatter={(v: number) => `${Math.round(v * 100)}%`} width={44} {...axis} />
+                      <YAxis domain={[0.3, 0.7]} ticks={[0.3, 0.4, 0.5, 0.6, 0.7]} tickFormatter={(v: number) => `${Math.round(v * 100)}%`} width={52} {...axis} />
                       <ReferenceLine x="0.4" stroke="var(--faint)" strokeDasharray="3 3" />
                       <Tooltip content={<Tip format={(v) => pct(v)} labelFormat={(l) => `Completeness ${l}–${(Number(l) + 0.1).toFixed(1)}`} />} />
                       <Area dataKey="band" name="95% interval" stroke="none" fill="var(--outcome)" fillOpacity={0.08} />

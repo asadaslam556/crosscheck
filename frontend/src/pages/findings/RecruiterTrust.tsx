@@ -66,7 +66,7 @@ export default function RecruiterTrust() {
                   <LineChart data={monthly} margin={{ top: 14, right: 12, bottom: 0, left: 0 }}>
                     <CartesianGrid vertical={false} />
                     <XAxis dataKey="month" tickFormatter={(m: string) => month(m, true)} {...axis} />
-                    <YAxis domain={[0.4, 1]} ticks={[0.4, 0.6, 0.8, 1]} tickFormatter={(v: number) => `${Math.round(v * 100)}%`} width={44} {...axis} />
+                    <YAxis domain={[0.4, 1]} ticks={[0.4, 0.6, 0.8, 1]} tickFormatter={(v: number) => `${Math.round(v * 100)}%`} width={52} {...axis} />
                     <ReferenceLine x="2026-01" stroke="var(--bad)" strokeDasharray="3 3" label={{ value: "drop", position: "insideTopLeft", fill: "var(--bad)", fontSize: 11 }} />
                     {cutover && <ReferenceLine x={cutover} stroke="var(--faint)" strokeDasharray="3 3" label={{ value: "v2 ships", position: "insideTopLeft", fill: "var(--muted)", fontSize: 11 }} />}
                     <Tooltip content={<Tip format={(v) => pct(v)} labelFormat={(l) => month(l)} />} />

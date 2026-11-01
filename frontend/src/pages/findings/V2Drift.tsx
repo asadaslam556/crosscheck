@@ -112,7 +112,7 @@ export default function V2Drift() {
                         <LineChart data={curves} margin={{ top: 6, right: 8, bottom: 0, left: 0 }}>
                           <CartesianGrid vertical={false} />
                           <XAxis dataKey="threshold" type="number" domain={[40, 95]} ticks={[40, 50, 60, 70, 80, 90]} {...axis} />
-                          <YAxis domain={domain} ticks={[...ticks]} allowDataOverflow tickFormatter={percent} width={44} {...axis} />
+                          <YAxis domain={domain} ticks={[...ticks]} allowDataOverflow tickFormatter={percent} width={52} {...axis} />
                           <ReferenceLine x={70} stroke="var(--faint)" strokeDasharray="3 3" />
                           <ReferenceLine x={threshold} stroke="var(--llm)" />
                           <Tooltip content={<Tip format={(v) => pct(v)} labelFormat={(l) => `Threshold ${l}`} />} />
@@ -136,7 +136,7 @@ export default function V2Drift() {
                     <LineChart data={calibrationRows} margin={{ top: 6, right: 8, bottom: 0, left: 0 }}>
                       <CartesianGrid vertical={false} />
                       <XAxis dataKey="band" {...axis} interval={1} />
-                      <YAxis domain={[0, 1]} ticks={[0, 0.25, 0.5, 0.75, 1]} tickFormatter={percent} width={44} {...axis} />
+                      <YAxis domain={[0, 1]} ticks={[0, 0.25, 0.5, 0.75, 1]} tickFormatter={percent} width={52} {...axis} />
                       <Tooltip content={<Tip format={(v) => pct(v)} labelFormat={(l) => `Score ${l}`} />} />
                       <Line dataKey={versions[0]} name={versions[0]} strokeWidth={2} dot={{ r: 3 }} {...V1} />
                       <Line dataKey={versions[1]} name={versions[1]} strokeWidth={2.5} dot={{ r: 3 }} {...V2} />
@@ -154,7 +154,7 @@ export default function V2Drift() {
                       <CartesianGrid vertical={false} />
                       <ReferenceArea y1={driftData.warn_at} y2={driftData.fail_at} fill="var(--warn)" fillOpacity={0.08} />
                       <XAxis dataKey="month" tickFormatter={(m: string) => month(m, true)} {...axis} interval={1} />
-                      <YAxis domain={[0, 0.3]} ticks={[0, 0.1, 0.2, 0.3]} tickFormatter={(v: number) => v.toFixed(1)} width={44} {...axis} />
+                      <YAxis domain={[0, 0.3]} ticks={[0, 0.1, 0.2, 0.3]} tickFormatter={(v: number) => v.toFixed(1)} width={52} {...axis} />
                       {cutover && <ReferenceLine x={cutover} stroke="var(--faint)" strokeDasharray="3 3" label={{ value: "v2 ships", position: "insideTopLeft", fill: "var(--muted)", fontSize: 11 }} />}
                       <Tooltip content={<Tip format={(v) => v.toFixed(3)} labelFormat={(l) => month(l)} />} />
                       <Line dataKey="llm_psi" name="LLM score" stroke="var(--llm)" strokeWidth={2.5} dot={{ r: 3 }} />
