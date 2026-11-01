@@ -149,3 +149,78 @@ def test_every_dimension_renders(api, dimension):
 @pytest.mark.parametrize("scorer", ["llm", "rule"])
 def test_calibration_serves_both_scorers(api, scorer):
     assert get(api, "calibration", scorer=scorer)["bands"]
+
+
+def test_within_job_ranking_favours_the_rule_scorer(api):
+    result = get(api, "within-job")
+    assert result["jobs"] == 80
+    assert result["rule"]["mean"] == about(0.759)
+    assert result["llm"]["mean"] == about(0.724)
+
+
+def test_verdict_has_four_views_and_only_pooled_favours_the_llm(api):
+    verdict = {view["key"]: view for view in get(api, "overview")["verdict"]}
+    assert list(verdict) == ["pooled", "excluding_healthcare", "within_job", "after_fix"]
+    assert [view["rule"] > view["llm"] for view in verdict.values()] == [False, True, True, True]
+
+
+def test_healthcare_rescale_restores_the_rule_scorer(api):
+    result = get(api, "effectiveness", rescale_family="Healthcare")
+    assert result["rescale_factor"] == about(4.06, 0.005)
+    assert result["rule"]["auc"] == about(0.762)
+
+
+def test_rule_beats_llm_significantly_without_healthcare(api):
+    comparison = get(api, "effectiveness", exclude_family="Healthcare")["comparison"]
+    assert comparison["difference"] == about(0.053, 0.001)
+    assert comparison["interval"][0] > 0
+
+
+def test_threshold_78_restores_the_v1_flag_rate(api):
+    curves = {c["version"]: c["points"] for c in get(api, "threshold-sweep")["versions"]}
+    assert list(curves) == ["scorer-v1", "scorer-v2"]
+    assert curves["scorer-v1"][70]["flagged_rate"] == about(0.296)
+    assert curves["scorer-v2"][78]["flagged_rate"] == about(0.294)
+    assert curves["scorer-v2"][78]["precision"] == about(0.780)
+
+
+def test_disagreement_triage(api):
+    triage = get(api, "agreement")["triage"]
+    assert triage["disagreements"] == 1872
+    cases = {cause["cause"]: cause["cases"] for cause in triage["causes"]}
+    assert cases == {
+        "healthcare_rule_scale": 651,
+        "thin_profile_inflation": 167,
+        "austria_bonus": 74,
+        "v2_inflation": 54,
+        "unexplained": 926,
+    }
+
+
+def test_drift_steps_up_when_v2_ships(api):
+    months = {m["month"]: m for m in get(api, "drift")["months"]}
+    assert months["2026-02"]["llm_psi"] < 0.10 < months["2026-03"]["llm_psi"]
+    assert all(m["rule_psi"] < 0.10 for m in months.values())
+
+
+def test_data_quality_checks(api):
+    facts = get(api, "data-quality")["facts"]
+    assert facts["duplicate_pairs"] == 243
+    assert facts["without_events"] == 109
+    assert (facts["ties_at_half"], facts["ties_bucketed_low"]) == (12, 2)
+    assert facts["cross_border"] == 339
+    assert facts["idle_candidates"] == 33
+    assert facts["pending_rate_min"] == about(0.075, 0.001)
+    assert facts["pending_rate_max"] == about(0.091, 0.001)
+
+
+def test_completeness_deciles_show_the_cliff_at_point_four(api):
+    deciles = segments(api, "completeness_decile")
+    assert deciles["0.3"]["mean_llm_score"] - deciles["0.4"]["mean_llm_score"] > 10
+
+
+def test_country_by_version_crosstab(api):
+    rows = get(api, "segments", dimension="country", by="model_version")["segments"]
+    means = {(r["segment"], r["subsegment"]): r["mean_llm_score"] for r in rows}
+    assert means[("AT", "scorer-v1")] == about(65.4, 0.05)
+    assert means[("DE", "scorer-v1")] == about(59.0, 0.05)

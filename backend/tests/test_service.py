@@ -216,3 +216,52 @@ class TestCalibration:
         ]
         band = service.calibration(None, scorer="llm")["bands"][0]
         assert band["band_label"] == "60-70"
+
+
+def case(**overrides):
+    base = {
+        "application_id": "A1",
+        "job_family": "IT",
+        "job_country": "DE",
+        "llm_model_version": "scorer-v1",
+        "profile_completeness": 0.8,
+        "rule_high": True,
+        "llm_high": False,
+        "label": 1,
+    }
+    return {**base, **overrides}
+
+
+class TestTriage:
+    def test_healthcare_with_a_low_rule_score_is_the_scale_bug(self):
+        assert service.triage_cause(
+            case(job_family="Healthcare", rule_high=False, llm_high=True)
+        ) == ("healthcare_rule_scale")
+
+    def test_rules_are_checked_in_order(self):
+        # Thin profile and Austrian job both fit; the thin-profile rule comes first.
+        thin_austrian = case(
+            rule_high=False, llm_high=True, profile_completeness=0.2, job_country="AT"
+        )
+        assert service.triage_cause(thin_austrian) == "thin_profile_inflation"
+
+    def test_llm_rules_need_the_llm_to_be_the_positive_one(self):
+        # The rule scorer liked this one, so an LLM bias cannot explain it.
+        assert (
+            service.triage_cause(case(job_country="AT", profile_completeness=0.1)) == "unexplained"
+        )
+
+    def test_counts_which_scorer_was_right(self):
+        result = service.triage(
+            [
+                case(job_family="Healthcare", rule_high=False, llm_high=True, label=1),
+                case(job_family="Healthcare", rule_high=False, llm_high=True, label=0),
+                case(label=1),
+            ]
+        )
+        causes = {c["cause"]: c for c in result["causes"]}
+        assert result["disagreements"] == 3
+        assert causes["healthcare_rule_scale"]["cases"] == 2
+        assert causes["healthcare_rule_scale"]["rule_right_rate"] == 0.5
+        assert causes["unexplained"]["rule_right_rate"] == 1.0
+        assert causes["austria_bonus"]["positive_rate"] is None

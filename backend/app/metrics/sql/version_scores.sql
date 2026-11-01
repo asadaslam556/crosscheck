@@ -4,5 +4,6 @@
 SELECT llm_model_version,
        llm_score::float8  AS llm_score,
        rule_score::float8 AS rule_score,
-       created_at
+       created_at,
+       CASE WHEN is_decided THEN is_positive::int END AS label
 FROM scored_applications;

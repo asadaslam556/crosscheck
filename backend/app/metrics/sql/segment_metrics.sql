@@ -1,6 +1,7 @@
 -- Per-segment counts and mean scores. Positive rate and its confidence interval are
 -- derived in Python from positives/decided so the interval logic lives in one place.
 SELECT {dimension}                                            AS segment,
+       {by}                                                   AS subsegment,
        count(*)                                               AS applications,
        count(*) FILTER (WHERE is_decided)                     AS decided,
        count(*) FILTER (WHERE is_decided AND is_positive)     AS positives,
@@ -9,5 +10,5 @@ SELECT {dimension}                                            AS segment,
        avg((rule_fit = 'good')::int)::float8                  AS good_fit_rate,
        avg((rule_fit = 'low')::int)::float8                   AS low_fit_rate
 FROM scored_applications
-GROUP BY 1
-ORDER BY 1;
+GROUP BY 1, 2
+ORDER BY 1, 2;

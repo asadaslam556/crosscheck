@@ -15,8 +15,8 @@ from app.metrics.queries import DIMENSIONS
 router = APIRouter(prefix="/api")
 
 SessionDep = Annotated[Session, Depends(get_session)]
+Scorer = Literal["llm", "rule"]
 
-# Reused by three endpoints. Annotated keeps it a type, not a shared mutable default.
 ExcludeFamily = Annotated[
     str | None,
     Query(
@@ -24,6 +24,14 @@ ExcludeFamily = Annotated[
         "platform without the rule scorer's broken segment.",
     ),
 ]
+RescaleFamily = Annotated[
+    str | None,
+    Query(
+        description="Scale one family's rule scores up to the level of the others before "
+        "computing. Use Healthcare to simulate the proposed normalisation fix.",
+    ),
+]
+Dimension = Annotated[str, Query(description=f"One of: {', '.join(DIMENSIONS)}")]
 
 
 @router.get("/health", response_model=schemas.Health, responses={503: {"model": schemas.Health}})
@@ -44,25 +52,31 @@ def get_overview(session: SessionDep):
 def get_effectiveness(
     session: SessionDep,
     exclude_family: ExcludeFamily = None,
+    rescale_family: RescaleFamily = None,
 ):
-    return service.effectiveness(session, exclude_family=exclude_family)
+    return service.effectiveness(
+        session, exclude_family=exclude_family, rescale_family=rescale_family
+    )
+
+
+@router.get("/within-job", response_model=schemas.WithinJob)
+def get_within_job(session: SessionDep):
+    return service.within_job(session)
 
 
 @router.get("/agreement", response_model=schemas.Agreement)
-def get_agreement(
-    session: SessionDep,
-    exclude_family: ExcludeFamily = None,
-):
+def get_agreement(session: SessionDep, exclude_family: ExcludeFamily = None):
     return service.agreement(session, exclude_family=exclude_family)
 
 
 @router.get("/segments", response_model=schemas.Segments)
 def get_segments(
     session: SessionDep,
-    dimension: str = Query("job_family", description=f"One of: {', '.join(DIMENSIONS)}"),
+    dimension: Dimension = "job_family",
+    by: Annotated[str | None, Query(description="Optional second dimension")] = None,
 ):
     try:
-        return service.segments(session, dimension=dimension)
+        return service.segments(session, dimension=dimension, by=by)
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
 
@@ -70,10 +84,20 @@ def get_segments(
 @router.get("/calibration", response_model=schemas.Calibration)
 def get_calibration(
     session: SessionDep,
-    scorer: Literal["llm", "rule"] = "llm",
+    scorer: Scorer = "llm",
     exclude_family: ExcludeFamily = None,
 ):
     return service.calibration(session, scorer=scorer, exclude_family=exclude_family)
+
+
+@router.get("/threshold-sweep", response_model=schemas.ThresholdSweep)
+def get_threshold_sweep(session: SessionDep, scorer: Scorer = "llm"):
+    return service.sweep(session, scorer=scorer)
+
+
+@router.get("/drift", response_model=schemas.Drift)
+def get_drift(session: SessionDep):
+    return service.drift(session)
 
 
 @router.get("/recruiter-behaviour", response_model=schemas.RecruiterBehaviour)
@@ -84,3 +108,13 @@ def get_recruiter_behaviour(session: SessionDep):
 @router.get("/quality-gate", response_model=schemas.QualityGate)
 def get_quality_gate(session: SessionDep):
     return service.quality_gate(session)
+
+
+@router.get("/data-quality", response_model=schemas.DataQuality)
+def get_data_quality(session: SessionDep):
+    return service.data_quality(session)
+
+
+@router.get("/third-opinion", response_model=schemas.ThirdOpinion)
+def get_third_opinion(session: SessionDep):
+    return service.third_opinion(session)

@@ -31,6 +31,11 @@ DIMENSIONS: dict[str, str] = {
     "seniority": "seniority",
     "model_version": "llm_model_version",
     "profile_band": "profile_band",
+    # 0.0 for completeness in [0.0, 0.1), up to 0.9 for [0.9, 1.0]. Text, so it sorts and reads
+    # the same in the API as in SQL.
+    "completeness_decile": (
+        "to_char(least(width_bucket(profile_completeness, 0, 1, 10), 10) / 10.0 - 0.1, 'FM0.0')"
+    ),
 }
 
 
@@ -50,10 +55,20 @@ def resolve_dimension(dimension: str) -> str:
     return DIMENSIONS[dimension]
 
 
-def run(session: Session, name: str, dimension: str | None = None, **params: Any) -> list[dict]:
+def run(
+    session: Session,
+    name: str,
+    dimension: str | None = None,
+    by: str | None = None,
+    **params: Any,
+) -> list[dict]:
+    """Run a query file. `dimension` and `by` fill its grouping placeholders, if it has any."""
     sql = _read(name)
     if dimension is not None:
-        sql = sql.format(dimension=resolve_dimension(dimension))
+        sql = sql.format(
+            dimension=resolve_dimension(dimension),
+            by=resolve_dimension(by) if by is not None else OVERALL,
+        )
     rows = session.execute(text(sql), params).mappings().all()
     return [dict(row) for row in rows]
 

@@ -1,6 +1,7 @@
 -- Schema for the match quality dataset. Safe to re-run: everything is dropped first.
 
 DROP VIEW IF EXISTS scored_applications;
+DROP TABLE IF EXISTS jev_scores;
 DROP TABLE IF EXISTS recruiter_events;
 DROP TABLE IF EXISTS applications;
 DROP TABLE IF EXISTS jobs;
@@ -46,6 +47,15 @@ CREATE TABLE recruiter_events (
     recruiter_id   TEXT      NOT NULL,
     event_type     TEXT      NOT NULL CHECK (event_type IN ('profile_opened', 'ai_score_viewed', 'shortlisted')),
     created_at     TIMESTAMP NOT NULL
+);
+
+-- Jev's judgement per application, from scripts/score_with_jev.py. Optional: the table stays
+-- empty when data/derived/jev_scores.csv has not been generated.
+CREATE TABLE jev_scores (
+    application_id TEXT         PRIMARY KEY REFERENCES applications (application_id),
+    probability    NUMERIC(5,4) NOT NULL CHECK (probability BETWEEN 0 AND 1),
+    model          TEXT         NOT NULL,
+    scored_at      TIMESTAMPTZ  NOT NULL
 );
 
 CREATE INDEX idx_applications_job ON applications (job_id);
