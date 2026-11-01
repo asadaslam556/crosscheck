@@ -27,6 +27,8 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = ["integration: loads the CSVs into the PostgreSQL at DATABASE_URL, dropping every table"]
+addopts = "-m 'not integration'"
 filterwarnings = [
     # Starlette wants httpx2 for TestClient; httpx still works and is what FastAPI documents.
     "ignore:Using `httpx` with `starlette.testclient` is deprecated",
