@@ -58,8 +58,8 @@ from the 52.8% of everyone else. The candidates are fine. The scorer is not.
 Three checks confirm this is a scorer defect and not a property of the data. It holds
 uniformly across all 18 Healthcare jobs. It holds in both countries (AT 0.144, DE 0.140).
 And *within* Healthcare the rule scorer still ranks well, at AUC 0.702, so the ordering
-survives and only the scale is wrong. The ratio between the Healthcare mean and the
-all-other-families mean is 4.04, which points at a normalisation step dividing by a
+survives and only the scale is wrong. The ratio between the mean of every other application and
+the Healthcare mean is 4.06, which points at a normalisation step dividing by a
 requirement count that the Healthcare rule set does not share.
 
 **Why it matters, and this is the part to take to management.** The compression drags the
@@ -70,11 +70,19 @@ rule scorer's pooled AUC down to 0.689 and flips the comparison between the two 
 | All job families | 0.689 | 0.724 | LLM |
 | Excluding Healthcare | **0.782** | 0.729 | **Rule** |
 
-Per family, the rule scorer wins in four of five (Logistics 0.791 against 0.748,
+Per family, the rule scorer wins in four of five (Logistics 0.791 against 0.747,
 Office & Admin 0.798 against 0.743, Manufacturing 0.768 against 0.706, IT 0.755 against
 0.692) and ties in Healthcare. This is Simpson's paradox: the pooled figure says the
 opposite of every segment inside it. It also manufactures fake disagreement between the two
 systems. Agreement rises from 65.9% to 74.3% once Healthcare is removed.
+
+Two more checks say the same thing from different directions. Simulating the fix, by scaling
+Healthcare's rule scores up by that ratio of 4.06, lifts the rule scorer's pooled AUC from
+0.689 to 0.762, clear of the LLM's 0.724. And the product never compares candidates across job
+families anyway: a recruiter ranks the applicants to one posting. Measured inside each of the
+80 jobs and averaged, the rule scorer wins 0.759 to 0.724 *with Healthcare included*, because a
+scale problem that only hits one family cannot reorder candidates within a job. The pooled
+number is the only view in which the LLM comes out ahead.
 
 The business cost is direct. Rescaling Healthcare by the observed factor would move 772 of
 the 1,239 decided Healthcare applications into `medium` or `good`, and that group converts
@@ -169,9 +177,10 @@ made by accident rather than chosen.
 
 **Proposal for the LLM scorer team.** Recalibrate v2 onto the v1 scale before comparing
 anything, either by mapping v2 scores to v1 score quantiles or by raising the flag
-threshold from 70 to roughly 78, which restores the old flag rate. Then make this
-automatic: the `/api/quality-gate` endpoint in this repo runs the same PSI comparison
-against the previous version and returns pass, warn or fail. Wire it into the release
+threshold from 70 to 78, which restores the old flag rate (29.4% against 29.6%) and lifts
+the flag's precision from 70.9% to 78.0%. Then make this
+automatic: `python -m app.gate` in this repo runs the same PSI comparison against the
+previous version and exits non-zero when it fails, and `/api/quality-gate` serves the result. Wire it into the release
 pipeline so a distribution shift blocks a rollout instead of being found five months later.
 Report AUC and PSI together in every release note, since this release would have looked
 like an improvement on either mean score or flag recall alone.
@@ -225,7 +234,7 @@ the AI while doing it. Trust in a feature is the leading indicator of whether it
 so this is worth escalating regardless of the scorers' accuracy.
 
 **The trap.** Cut the same data by model version and it looks like an open and shut case:
-66.4% of v1-era applications had the AI score viewed against 59.5% of v2-era ones. The
+66.3% of v1-era applications had the AI score viewed against 59.5% of v2-era ones. The
 natural conclusion is that v2 damaged recruiter trust. The time series rules that out. The
 drop happens at the December to January boundary, and v2 did not ship until March. Whatever
 caused this preceded the model change by two months, and attributing it to v2 would send the
@@ -251,6 +260,29 @@ section.
 
 ---
 
+## Why the two scorers disagree
+
+Split each scorer at its own median and the two land on opposite sides for 1,872 of the 5,496
+decided applications. Taking the four findings above as known defects, I attributed each of
+those disagreements to the first defect that fits it, in this order:
+
+| Cause | Rule | Share | Moved forward |
+|---|---|---|---|
+| Healthcare scale bug | Healthcare job, rule score below its median | 35% | 65.0% |
+| Thin-profile inflation | LLM above its median, completeness below 0.4 | 9% | 33.5% |
+| Austria bonus | LLM above its median, Austrian job | 4% | 39.2% |
+| v2 inflation | LLM above its median, scored by v2 | 3% | 48.1% |
+| Unexplained | none of the above | 49% | 52.5% |
+
+The outcome rates say who was wrong. The Healthcare cases, which the rule scorer disliked,
+convert at 65%. The thin-profile and Austrian cases, which the LLM liked, convert well below the
+platform average. So about half of all the arguing between the two systems is produced by the
+four defects, and the rest is close to a coin flip. The attribution is a heuristic, not a
+diagnosis: the order of the rules decides overlapping cases. The dashboard shows it on the
+Disagreements page.
+
+---
+
 ## Limitations
 
 - **The label is contaminated.** Recruiters see both scores before deciding, so the scores
@@ -267,7 +299,7 @@ section.
   scores to decided ones (LLM 64.4 against 64.3). It looks missing-at-random, so
   complete-case analysis is sound. If pending rates ever diverge by segment this assumption
   needs revisiting.
-- **The Healthcare rescale factor of 4.04 is descriptive.** It is derived from the observed
+- **The Healthcare rescale factor of 4.06 is descriptive.** It is derived from the observed
   ratio between family means, not from reading the scoring code. It is strong enough to
   locate the bug, not to be applied as a patch.
 - **243 duplicate candidate and job pairs** are kept as separate applications, since each
