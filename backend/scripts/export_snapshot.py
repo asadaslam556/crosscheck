@@ -14,11 +14,15 @@ from __future__ import annotations
 
 import json
 import sys
+import warnings
 from pathlib import Path
 
-from fastapi.testclient import TestClient
+# Starlette asks for httpx2 here; httpx works the same for a local test client.
+warnings.filterwarnings("ignore", message="Using `httpx` with `starlette.testclient`")
 
-from app.main import app
+from fastapi.testclient import TestClient  # noqa: E402
+
+from app.main import app  # noqa: E402
 
 DEFAULT_OUTPUT = Path(__file__).resolve().parents[2] / "frontend" / "public" / "data"
 
