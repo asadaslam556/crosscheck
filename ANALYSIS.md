@@ -1,5 +1,15 @@
 # Match Quality Analysis
 
+<p>
+  <img src="https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/NumPy-013243?logo=numpy&logoColor=white" alt="NumPy">
+  <img src="https://img.shields.io/badge/scikit--learn-cross--check-F7931E?logo=scikitlearn&logoColor=white" alt="scikit-learn">
+  <img src="https://img.shields.io/badge/stats-AUC%20%C2%B7%20DeLong%20%C2%B7%20Wilson%20%C2%B7%20PSI-111827" alt="Statistics used">
+</p>
+
+Every chart below is a panel from the dashboard, and every number is pinned by an integration test. [Open the live demo](https://asadaslam556.github.io/crosscheck/) to click through them.
+
 Five findings from 6,000 scored applications, 5,496 of which have a recruiter decision.
 
 **The short version.** The platform's two scorers both work, but the headline comparison
@@ -62,6 +72,8 @@ survives and only the scale is wrong. The ratio between the mean of every other 
 the Healthcare mean is 4.06, which points at a normalisation step dividing by a
 requirement count that the Healthcare rule set does not share.
 
+<p align="center"><img src="docs/images/findings/1-healthcare-1.png" alt="Rule-fit label by job family: Healthcare is 100% low" width="760"></p>
+
 **Why it matters, and this is the part to take to management.** The compression drags the
 rule scorer's pooled AUC down to 0.689 and flips the comparison between the two systems:
 
@@ -88,6 +100,8 @@ The business cost is direct. Rescaling Healthcare by the observed factor would m
 the 1,239 decided Healthcare applications into `medium` or `good`, and that group converts
 at 62.6%, well above the 52.3% platform average. The scorer is currently labelling the best
 performing group on the platform as uniformly poor.
+
+<p align="center"><img src="docs/images/findings/1-healthcare-2.png" alt="Rule and LLM AUC per job family, with DeLong intervals" width="760"></p>
 
 **Proposal for the rule scorer team.** Fix the normalisation in the Healthcare rule set,
 then add a release check that fails if any job family's `rule_fit` distribution contains
@@ -127,6 +141,8 @@ check and only appears when a fixed threshold is applied across candidates.
 
 The likely mechanism is that a sparse profile gives the model nothing to object to. Absent
 evidence reads as absence of problems.
+
+<table><tr><td><img src="docs/images/findings/2-thin-profiles-1.png" alt="Mean LLM score by profile completeness: a cliff at 0.4"></td><td><img src="docs/images/findings/2-thin-profiles-2.png" alt="Share moved forward by profile completeness"></td></tr></table>
 
 **Proposal for the LLM scorer team.** Two changes. First, pass profile completeness into
 the prompt explicitly and instruct the model to return a confidence band alongside the
@@ -175,6 +191,8 @@ flag itself became less trustworthy. Whether that trade is good depends on wheth
 recruiter capacity is the constraint, which is a product decision, but right now it was
 made by accident rather than chosen.
 
+<p align="center"><img src="docs/images/findings/3-v2-drift.png" alt="Threshold explorer at 78: v2 flags 29.4%, as v1 did at 70" width="760"></p>
+
 **Proposal for the LLM scorer team.** Recalibrate v2 onto the v1 scale before comparing
 anything, either by mapping v2 scores to v1 score quantiles or by raising the flag
 threshold from 70 to 78, which restores the old flag rate (29.4% against 29.6%) and lifts
@@ -200,6 +218,8 @@ complete: AT 67.4, DE 60.2). The rule scorer shows no such pattern, scoring AT s
 
 The consequence shows up in ranking quality: the LLM's AUC in Austria is 0.706 against
 0.737 in Germany. An inflated, compressed score band discriminates less well within itself.
+
+<p align="center"><img src="docs/images/findings/4-country-bias.png" alt="Mean LLM score for AT and DE inside each model version" width="760"></p>
 
 **Why it matters more than its size suggests.** This is a recruiting platform operating
 under EU employment law. A scoring system that gives one nationality a systematic advantage
@@ -232,6 +252,8 @@ AI panel engagement fell about 10 points and stayed down. Profile opens did not 
 Recruiters are still working the queue at the same rate, they have just stopped consulting
 the AI while doing it. Trust in a feature is the leading indicator of whether it survives,
 so this is worth escalating regardless of the scorers' accuracy.
+
+<p align="center"><img src="docs/images/findings/5-recruiter-trust.png" alt="Profile opens flat, AI score views drop in January, v2 ships in March" width="760"></p>
 
 **The trap.** Cut the same data by model version and it looks like an open and shut case:
 66.3% of v1-era applications had the AI score viewed against 59.5% of v2-era ones. The
@@ -274,6 +296,8 @@ those disagreements to the first defect that fits it, in this order:
 | v2 inflation | LLM above its median, scored by v2 | 3% | 48.1% |
 | Unexplained | none of the above | 49% | 52.5% |
 
+<p align="center"><img src="docs/images/findings/6-triage.png" alt="Share of disagreements by cause, with the rule scorer's hit rate" width="760"></p>
+
 The outcome rates say who was wrong. The Healthcare cases, which the rule scorer disliked,
 convert at 65%. The thin-profile and Austrian cases, which the LLM liked, convert well below the
 platform average. So about half of all the arguing between the two systems is produced by the
@@ -294,6 +318,8 @@ never saw either score or the outcome.
 |---|---|---|---|
 | AUC | 0.689 | 0.724 | 0.671 |
 | Right on the 1,872 disagreements | 48.3% | 51.7% | 50.3% |
+
+<table><tr><td><img src="docs/images/findings/7-jev-1.png" alt="AUC of the rule scorer, the LLM and Jev"></td><td><img src="docs/images/findings/7-jev-2.png" alt="Jev calibration: stated probability against share moved forward"></td></tr></table>
 
 It ranks below both production scorers, and the gap to the LLM is well outside its interval.
 Its probabilities run low: in its 0.4 to 0.5 band, 80% of applicants were moved forward. As a

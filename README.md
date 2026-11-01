@@ -155,6 +155,8 @@ DATABASE_URL=postgresql+psycopg://mqi:mqi@localhost:5433/mqi pytest -m integrati
 cd frontend && npm test && npm run build:static && npm run e2e
 ```
 
+<p align="center"><img src="docs/images/ci.svg" alt="CI: lint and unit tests, integration tests against Postgres, snapshot export, static build, Playwright, GitHub Pages"></p>
+
 The integration tests drop and reload every table at `DATABASE_URL`, so point them at a throwaway database. CI runs all of it on every push, checks the generated API types match the backend, posts the release gate report to the run summary, and builds the Compose stack.
 
 ## Project layout

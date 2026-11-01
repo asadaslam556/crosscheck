@@ -1,5 +1,10 @@
 # Changelog
 
+<p>
+  <a href="https://github.com/asadaslam556/crosscheck/releases"><img src="https://img.shields.io/github/v/release/asadaslam556/crosscheck?logo=github" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/versioning-SemVer-3F4551?logo=semver" alt="SemVer">
+</p>
+
 ## 2.1.0
 
 - Jev (`jev-1.14.0`) scored all 5,496 decided applications, and the results are committed. It ranks below both production scorers (AUC 0.671), its probabilities run low, and as a tiebreaker it is a coin flip, but it repeats none of the LLM's biases.
