@@ -14,7 +14,7 @@
 <p align="center">
   <a href="https://github.com/asadaslam556/crosscheck/actions/workflows/ci.yml"><img src="https://github.com/asadaslam556/crosscheck/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://asadaslam556.github.io/crosscheck/"><img src="https://img.shields.io/badge/live%20demo-GitHub%20Pages-2563EB?logo=github" alt="Live demo"></a>
-  <img src="https://img.shields.io/badge/tests-112%20backend%20%C2%B7%2033%20frontend-15803d?logo=pytest&logoColor=white" alt="Tests">
+  <img src="https://img.shields.io/badge/tests-113%20backend%20%C2%B7%2035%20frontend-15803d?logo=pytest&logoColor=white" alt="Tests">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
 </p>
 
@@ -73,7 +73,7 @@ The full write-up, with method, limitations and a proposal per finding, is in [A
 - **Intervals on everything.** AUCs carry DeLong intervals and paired tests, rates carry Wilson intervals, and small segments are faded.
 - **Disagreement triage.** Of the 1,872 applications where the two scorers disagree, about half trace back to one of the known defects. The rest convert at 52.5%, a coin flip.
 - **A release gate you can run in CI.** `python -m app.gate` compares the latest model version with the previous one (PSI, with the unchanged rule scorer as the control) and exits non-zero when it fails.
-- **A third opinion.** [Jev](https://typesafe.ai), TypeSafe AI's decision model, can score every application from the job and candidate facts alone and be graded on the same yardstick. See [Using Jev](#using-jev).
+- **A third opinion.** [Jev](https://typesafe.ai), TypeSafe AI's decision model, scored every decided application from the job and candidate facts alone, and is graded on the same yardstick. It ranks below both production scorers (AUC 0.671), its probabilities run low, and as a tiebreaker it's a coin flip. But it doesn't repeat the LLM's biases, which makes it a cheap check on them. See [Using Jev](#using-jev).
 - **A data page** that backs each assumption with a number: pending rate by segment, duplicate applications, the shortlisting leak, ties at the cut-off.
 
 ## Run it
@@ -131,23 +131,23 @@ The label isn't neutral: recruiters see both scores before they decide, so every
 
 ## Using Jev
 
-Jev hasn't been run in this repo yet, so the Third opinion page shows how to run it. With a key from the [TypeSafe console](https://console.typesafe.ai):
+The results for `jev-1.14.0` are committed in `data/derived/jev_scores.csv`, so the Third opinion page works without a key. To score again, with a key from the [TypeSafe console](https://console.typesafe.ai):
 
 ```bash
 cd backend
 TYPESAFE_API_KEY=... python -m scripts.score_with_jev
 ```
 
-It sends each decided application's job and candidate facts, never the scores or the outcome, and asks one typed question. The results go to `data/derived/jev_scores.csv`, which is meant to be committed, so nothing else ever needs the key. A full run is about 2.4M input tokens. Restart the stack and the page fills in.
+It sends each decided application's job and candidate facts, never the scores or the outcome, and asks one typed question: will the recruiter move this candidate forward? It skips applications already in the file, so an interrupted run picks up where it stopped. Restart the stack to load new results.
 
 ## Tests and CI
 
 | Suite | Count | What it covers |
 |---|---|---|
 | Backend unit | 77 | AUC (against scikit-learn, heavy ties), DeLong (against a bootstrap), Wilson, PSI, the sweep, triage rules, the gate, the service layer, the HTTP layer |
-| Backend integration | 35 | Loads the CSVs into Postgres and pins every number quoted in this README and in ANALYSIS.md |
+| Backend integration | 36 | Loads the CSVs into Postgres and pins every number quoted in this README and in ANALYSIS.md |
 | Frontend unit | 7 | Formatters and the snapshot file mapping |
-| End to end | 26 | Every route on desktop and phone, the verdict flip, the rescale and the threshold slider |
+| End to end | 28 | Every route on desktop and phone, the verdict flip, the rescale and the threshold slider |
 
 ```bash
 cd backend && pytest                    # unit tests, no database needed

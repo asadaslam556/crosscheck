@@ -11,7 +11,7 @@ What I built after the take-home was submitted. The conclusions are the same, wi
 - A threshold sweep per model version. A v2 threshold of 78 restores v1's flag rate.
 - Monthly drift against the first three months, with the rule scorer as the control.
 - Disagreement triage: about half of the 1,872 disagreements trace back to a known defect.
-- Optional third opinion from TypeSafe's Jev, graded on the same yardstick.
+- A third opinion from TypeSafe's Jev, graded on the same yardstick: AUC 0.671, a coin flip as a tiebreaker, and none of the LLM's biases.
 - A data-quality endpoint that backs each assumption with a number.
 
 **Fixes**

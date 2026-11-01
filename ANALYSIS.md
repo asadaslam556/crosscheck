@@ -283,6 +283,30 @@ Disagreements page.
 
 ---
 
+## A third opinion: Jev
+
+I asked TypeSafe's decision model Jev (`jev-1.14.0`) one question about each of the 5,496 decided
+applications: will the recruiter move this candidate forward? It saw the job family, seniority
+and country, the candidate's country, experience, preferred family and profile completeness. It
+never saw either score or the outcome.
+
+| | Rule scorer | LLM scorer | Jev |
+|---|---|---|---|
+| AUC | 0.689 | 0.724 | 0.671 |
+| Right on the 1,872 disagreements | 48.3% | 51.7% | 50.3% |
+
+It ranks below both production scorers, and the gap to the LLM is well outside its interval.
+Its probabilities run low: in its 0.4 to 0.5 band, 80% of applicants were moved forward. As a
+tiebreaker between the two scorers it is a coin flip.
+
+What it does not do is repeat the LLM's mistakes. Austrian jobs get a mean probability of 28%
+against 29% for German ones, so no bonus. Thin profiles get 19% against 35% for complete ones,
+which is the same direction as the outcomes, where the LLM had it backwards. A cheap model that
+looks only at the facts is a reasonable standing check for the LLM's biases, even though it is
+not good enough to replace either scorer.
+
+---
+
 ## Limitations
 
 - **The label is contaminated.** Recruiters see both scores before deciding, so the scores
