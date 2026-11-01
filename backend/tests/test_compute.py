@@ -10,10 +10,14 @@ import pytest
 from sklearn.metrics import roc_auc_score
 
 from app.metrics.compute import (
+    auc_interval,
+    compare_aucs,
+    mean_interval,
     population_stability_index,
     precision_at_k,
     precision_recall_at_threshold,
     roc_auc,
+    threshold_sweep,
     wilson_interval,
 )
 
@@ -137,3 +141,69 @@ class TestPopulationStabilityIndex:
 
     def test_returns_none_for_an_empty_side(self):
         assert population_stability_index([], [1, 2, 3], self.EDGES) is None
+
+
+class TestDelong:
+    def test_interval_brackets_the_point_estimate(self):
+        rng = np.random.default_rng(1)
+        labels = rng.integers(0, 2, 500)
+        scores = labels + rng.normal(0, 1.2, 500)
+        low, high = auc_interval(labels, scores)
+        assert low < roc_auc(labels, scores) < high
+
+    def test_standard_error_agrees_with_a_bootstrap(self):
+        rng = np.random.default_rng(2)
+        labels = rng.integers(0, 2, 800)
+        scores = np.round(labels + rng.normal(0, 1.5, 800), 1)  # rounded, so ties occur
+        low, high = auc_interval(labels, scores)
+        boot = []
+        for _ in range(400):
+            index = rng.integers(0, 800, 800)
+            boot.append(roc_auc_score(labels[index], scores[index]))
+        assert (high - low) / (2 * 1.96) == pytest.approx(np.std(boot), rel=0.15)
+
+    def test_identical_scorers_have_no_difference(self):
+        rng = np.random.default_rng(3)
+        labels = rng.integers(0, 2, 300)
+        scores = labels + rng.normal(0, 1, 300)
+        result = compare_aucs(labels, scores, scores)
+        assert result["difference"] == pytest.approx(0.0)
+        assert result["p_value"] == pytest.approx(1.0)
+
+    def test_a_clearly_better_scorer_is_significant(self):
+        rng = np.random.default_rng(4)
+        labels = rng.integers(0, 2, 2000)
+        good = labels + rng.normal(0, 0.8, 2000)
+        noisy = labels + rng.normal(0, 3.0, 2000)
+        result = compare_aucs(labels, good, noisy)
+        assert result["difference"] > 0
+        assert result["interval"][0] > 0
+        assert result["p_value"] < 0.001
+
+    def test_one_class_returns_none(self):
+        assert auc_interval([1, 1, 1], [1, 2, 3]) is None
+        assert compare_aucs([0, 0], [1, 2], [2, 1]) is None
+
+
+class TestMeanInterval:
+    def test_symmetric_around_the_mean(self):
+        mean, (low, high) = mean_interval([0.6, 0.7, 0.8])
+        assert mean == pytest.approx(0.7)
+        assert mean - low == pytest.approx(high - mean)
+
+    def test_needs_two_values(self):
+        assert mean_interval([0.7]) is None
+
+
+class TestThresholdSweep:
+    def test_counts_pending_rows_in_the_flag_rate_only(self):
+        # Two pending rows (None) are flagged at 50 but have no outcome.
+        scores = [10, 60, 70, 80, 90, 95]
+        labels = [0, 0, 1, 1, None, None]
+        at_50 = threshold_sweep(scores, labels, [50])[0]
+        assert at_50["flagged_rate"] == pytest.approx(5 / 6)
+        assert at_50["precision"] == pytest.approx(2 / 3)
+        assert at_50["recall"] == pytest.approx(1.0)
+
+    def test_nothing_flagged_has_no_precision(self):
+        assert threshold_sweep([1, 2], [0, 1], [99])[0]["precision"] is None

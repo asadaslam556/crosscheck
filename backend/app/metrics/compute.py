@@ -12,7 +12,7 @@ sklearn on random data.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from math import log, sqrt
+from math import erfc, log, sqrt
 
 import numpy as np
 
@@ -129,3 +129,105 @@ def population_stability_index(
     curr_share = np.clip(np.histogram(curr, bins=edges)[0] / len(curr), 1e-6, None)
 
     return float(sum((c - b) * log(c / b) for b, c in zip(base_share, curr_share, strict=True)))
+
+
+def _delong(labels: Sequence[int], *score_sets: Sequence[float]):
+    """AUCs and their covariance matrix for scorers judged on the same applications.
+
+    DeLong et al. (1988), in the fast midrank form of Sun and Xu (2014). Each positive and each
+    negative gets a "placement" (the share of the other class it outranks); the variance of
+    those placements is the variance of the AUC, and because both scorers are measured on the
+    same rows, their placements also give the covariance needed to compare them.
+    """
+    y = np.asarray(labels, dtype=bool)
+    m, n = int(y.sum()), int((~y).sum())
+    if m == 0 or n == 0:
+        return None
+
+    aucs = np.empty(len(score_sets))
+    v10 = np.empty((len(score_sets), m))
+    v01 = np.empty((len(score_sets), n))
+    for i, scores in enumerate(score_sets):
+        x = np.asarray(scores, dtype=float)
+        pos, neg = x[y], x[~y]
+        all_ranks = _average_ranks(np.concatenate([pos, neg]))
+        aucs[i] = (all_ranks[:m].sum() - m * (m + 1) / 2) / (m * n)
+        v10[i] = (all_ranks[:m] - _average_ranks(pos)) / n
+        v01[i] = 1 - (all_ranks[m:] - _average_ranks(neg)) / m
+
+    covariance = np.atleast_2d(np.cov(v10)) / m + np.atleast_2d(np.cov(v01)) / n
+    return aucs, covariance
+
+
+def auc_interval(
+    labels: Sequence[int], scores: Sequence[float], z: float = 1.96
+) -> tuple[float, float] | None:
+    """95% confidence interval for one AUC, from the DeLong variance."""
+    result = _delong(labels, scores)
+    if result is None:
+        return None
+    aucs, covariance = result
+    margin = z * sqrt(covariance[0, 0])
+    return max(0.0, aucs[0] - margin), min(1.0, aucs[0] + margin)
+
+
+def compare_aucs(
+    labels: Sequence[int], first: Sequence[float], second: Sequence[float], z: float = 1.96
+) -> dict[str, float | list[float]] | None:
+    """Paired DeLong test: is the first scorer's AUC really different from the second's?"""
+    result = _delong(labels, first, second)
+    if result is None:
+        return None
+    aucs, covariance = result
+    difference = float(aucs[0] - aucs[1])
+    variance = covariance[0, 0] + covariance[1, 1] - 2 * covariance[0, 1]
+    if variance <= 1e-15:
+        return {"difference": difference, "interval": [difference, difference], "p_value": 1.0}
+    error = sqrt(variance)
+    return {
+        "difference": difference,
+        "interval": [difference - z * error, difference + z * error],
+        "p_value": erfc(abs(difference) / error / sqrt(2)),
+    }
+
+
+def mean_interval(
+    values: Sequence[float], z: float = 1.96
+) -> tuple[float, tuple[float, float]] | None:
+    """Mean with a normal-approximation interval, for averages over many small groups."""
+    x = np.asarray(values, dtype=float)
+    if len(x) < 2:
+        return None
+    mean = float(x.mean())
+    margin = z * float(x.std(ddof=1)) / sqrt(len(x))
+    return mean, (mean - margin, mean + margin)
+
+
+def threshold_sweep(
+    scores: Sequence[float], labels: Sequence[int | None], thresholds: Sequence[float]
+) -> list[dict[str, float | None]]:
+    """Flag rate, precision and recall at each threshold.
+
+    The flag rate counts every scored application, pending ones included, because that is the
+    share of the queue a recruiter sees flagged. Precision and recall need an outcome, so they
+    use decided applications only. Pending rows are passed as None.
+    """
+    x = np.asarray(scores, dtype=float)
+    decided = np.array([label is not None for label in labels])
+    y = np.array([bool(label) for label in labels])
+    positives = int((y & decided).sum())
+
+    rows = []
+    for threshold in thresholds:
+        flagged = x >= threshold
+        flagged_decided = int((flagged & decided).sum())
+        hits = int((flagged & decided & y).sum())
+        rows.append(
+            {
+                "threshold": float(threshold),
+                "flagged_rate": float(flagged.mean()) if len(x) else None,
+                "precision": hits / flagged_decided if flagged_decided else None,
+                "recall": hits / positives if positives else None,
+            }
+        )
+    return rows
