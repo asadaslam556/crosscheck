@@ -265,3 +265,41 @@ class TestTriage:
         assert causes["healthcare_rule_scale"]["rule_right_rate"] == 0.5
         assert causes["unexplained"]["rule_right_rate"] == 1.0
         assert causes["austria_bonus"]["positive_rate"] is None
+
+
+class TestThirdOpinion:
+    def test_unavailable_until_jev_has_been_run(self, stub_queries):
+        assert service.third_opinion(None) == {"available": False}
+
+    def test_grades_jev_like_the_other_scorers(self, stub_queries):
+        rows = []
+        for i in range(40):
+            label = i % 2
+            rows.append(
+                {
+                    "application_id": f"A{i}",
+                    "job_country": "AT" if i < 20 else "DE",
+                    "profile_band": "thin (<0.4)" if i % 4 == 0 else "complete (>=0.7)",
+                    "label": label,
+                    "rule_score": 0.4 + 0.2 * label,
+                    "llm_score": 50 + i,
+                    "jev_score": 0.9 if label else 0.2,
+                    "model": "jev-1.13.0",
+                }
+            )
+        stub_queries["third_opinion"] = rows
+        stub_queries["disagreement_cases"] = [
+            case(application_id="A1", rule_high=False, llm_high=True, label=1)
+        ]
+
+        result = service.third_opinion(None)
+
+        assert result["available"] is True
+        assert result["jev"]["auc"] == 1.0
+        assert result["tiebreak"] == {
+            "cases": 1,
+            "follow_rule": 0.0,
+            "follow_llm": 1.0,
+            "follow_jev": 1.0,
+        }
+        assert sum(band["decided"] for band in result["calibration"]) == 40
