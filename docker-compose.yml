@@ -1,39 +1,34 @@
 services:
   db:
-    image: postgres:16
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: mqi
       POSTGRES_PASSWORD: mqi
       POSTGRES_DB: mqi
-    ports:
-      - "5432:5432"
+    # No host port: only the api talks to the database. A local Postgres on 5432 can't clash.
+    # To poke at it: docker compose exec db psql -U mqi
     healthcheck:
-      # The backend loads data on start, so it has to wait for a database that accepts
-      # connections, not just a container that exists.
       test: ["CMD-SHELL", "pg_isready -U mqi -d mqi"]
       interval: 3s
       timeout: 3s
       retries: 20
 
-  backend:
+  api:
     build: ./backend
     environment:
       DATABASE_URL: postgresql+psycopg://mqi:mqi@db:5432/mqi
       DATA_DIR: /srv/data
-      CORS_ORIGIN: http://localhost:5173
     volumes:
       - ./data:/srv/data:ro
-    ports:
-      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
 
-  frontend:
+  web:
     build: ./frontend
-    environment:
-      VITE_API_BASE: http://localhost:8000
     ports:
-      - "5173:5173"
+      # Override with WEB_PORT=... if 8080 is taken.
+      - "${WEB_PORT:-8080}:80"
     depends_on:
-      - backend
+      api:
+        condition: service_healthy

@@ -14,7 +14,6 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://mqi:mqi@localhost:5432/mqi"
     data_dir: str = str(REPO_ROOT / "data")
-    cors_origin: str = "http://localhost:5173"
 
     # Recruiters see a "strong candidate" flag above this LLM score. It is the threshold
     # every precision and recall figure in the API is reported against.
