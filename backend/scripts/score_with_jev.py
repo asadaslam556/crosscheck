@@ -152,6 +152,11 @@ def main() -> None:
             if count % 250 == 0:
                 handle.flush()
                 print(f"{count}/{len(todo)}")
+    # Answers arrive in completion order; sort so a re-run gives a clean diff.
+    with OUTPUT.open(newline="") as handle:
+        rows = list(csv.reader(handle))
+    with OUTPUT.open("w", newline="") as handle:
+        csv.writer(handle).writerows([rows[0], *sorted(rows[1:])])
     print(f"Done. Results in {OUTPUT.relative_to(REPO_ROOT)}")
 
 

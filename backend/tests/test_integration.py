@@ -228,3 +228,19 @@ def test_country_by_version_crosstab(api):
     means = {(r["segment"], r["subsegment"]): r["mean_llm_score"] for r in rows}
     assert means[("AT", "scorer-v1")] == about(65.4, 0.05)
     assert means[("DE", "scorer-v1")] == about(59.0, 0.05)
+
+
+def test_jev_third_opinion(api):
+    result = get(api, "third-opinion")
+    if not result["available"]:
+        pytest.skip("data/derived/jev_scores.csv has not been generated")
+    assert result["decided"] == 5496
+    assert result["model"] == "jev-1.14.0"
+    assert result["jev"]["auc"] == about(0.671)
+    # It ranks below both production scorers, and the gap to the LLM is not noise.
+    assert result["jev_vs_llm"]["interval"][1] < 0
+    assert result["tiebreak"]["cases"] == 1872
+    # No Austria bonus, and thin profiles score lower, not higher.
+    means = {g["group"]: g["mean_jev"] for g in result["by_country"] + result["by_profile_band"]}
+    assert means["AT"] < means["DE"]
+    assert means["thin (<0.4)"] < means["complete (>=0.7)"]
