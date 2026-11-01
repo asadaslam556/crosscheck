@@ -1,5 +1,16 @@
 # Architecture
 
+<p>
+  <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/SQLAlchemy-2-D71F00?logo=sqlalchemy&logoColor=white" alt="SQLAlchemy">
+  <img src="https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/NumPy-013243?logo=numpy&logoColor=white" alt="NumPy">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React">
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white" alt="Vite">
+  <img src="https://img.shields.io/badge/nginx-009639?logo=nginx&logoColor=white" alt="nginx">
+  <img src="https://img.shields.io/badge/GitHub%20Actions-2088FF?logo=githubactions&logoColor=white" alt="GitHub Actions">
+</p>
+
 How Crosscheck is put together, and the decisions behind it that aren't obvious from the code.
 
 <p align="center"><img src="images/system.svg" alt="System overview"></p>
@@ -24,6 +35,20 @@ The interesting step is the dimension check. Segment queries group by a column c
 ## From CSV to chart
 
 <p align="center"><img src="images/data-flow.svg" alt="Data flow from CSV to API"></p>
+
+## Data model
+
+<p align="center"><img src="images/data-model.svg" alt="The four tables, the optional Jev table and the scored_applications view"></p>
+
+Foreign keys and `CHECK` constraints reject bad rows at load time: scores outside their range, a decision without a timestamp. Column details are in [data/README.md](../data/README.md).
+
+## The release gate
+
+<p align="center"><img src="images/release-gate.svg" alt="Release gate: both versions binned on fixed edges, LLM PSI against the rule-scorer control, then pass, warn or fail"></p>
+
+## CI and the live demo
+
+<p align="center"><img src="images/ci.svg" alt="CI: lint and unit tests, integration tests against Postgres, snapshot export, static build, Playwright, GitHub Pages"></p>
 
 ## Decisions
 

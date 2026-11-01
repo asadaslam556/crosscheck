@@ -1,5 +1,10 @@
 # Data
 
+<p>
+  <img src="https://img.shields.io/badge/PostgreSQL-COPY-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/CSV-4%20files-217346?logo=files&logoColor=white" alt="CSV">
+</p>
+
 The four CSVs the project runs on. They came with the original exercise and are kept byte for byte as supplied: `.gitattributes` turns off line-ending conversion for them, because they use CRLF.
 
 | File | Rows | One row is |
@@ -8,6 +13,8 @@ The four CSVs the project runs on. They came with the original exercise and are 
 | `jobs.csv` | 80 | a job posting |
 | `applications.csv` | 6,000 | one candidate applying to one job, with both scores and the recruiter's decision |
 | `recruiter_events.csv` | 11,758 | one recruiter interaction with an application |
+
+<p align="center"><img src="../docs/images/data-model.svg" alt="How the four tables join, and the view every query reads"></p>
 
 ## Columns
 

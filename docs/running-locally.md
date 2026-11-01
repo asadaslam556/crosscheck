@@ -1,8 +1,19 @@
 # Running it without Docker
 
+<p>
+  <img src="https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/PostgreSQL-14%2B-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Node.js-20%2B-5FA04E?logo=nodedotjs&logoColor=white" alt="Node.js">
+  <img src="https://img.shields.io/badge/Docker-optional-2496ED?logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/pytest-0A9EDC?logo=pytest&logoColor=white" alt="pytest">
+  <img src="https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white" alt="Playwright">
+</p>
+
 For running the tests, stepping through the code with a debugger, or using your own PostgreSQL. If you only want to see the dashboard, `docker compose up --build` from the repo root is all you need.
 
 You'll need PostgreSQL 14 or newer, Python 3.12 or newer, and Node 20 or newer.
+
+<p align="center"><img src="images/local-dev.svg" alt="Browser to the Vite dev server, proxied to uvicorn and your PostgreSQL. Integration tests use a separate container on port 5433."></p>
 
 ## 1. Create the database
 
