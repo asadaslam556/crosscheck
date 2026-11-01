@@ -105,10 +105,17 @@ class Overview(BaseModel):
     quality_gate: QualityGate
 
 
+class RescaleEffect(BaseModel):
+    decided: int
+    moved_out_of_low: int
+    moved_positive_rate: float | None
+
+
 class Effectiveness(BaseModel):
     excluded_job_family: str | None
     rescaled_job_family: str | None
     rescale_factor: float | None
+    rescale_effect: RescaleEffect | None
     distribution_by_decision: list[Row]
     rule: ScorerMetrics
     llm: ScorerMetrics

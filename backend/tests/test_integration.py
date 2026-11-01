@@ -168,6 +168,10 @@ def test_healthcare_rescale_restores_the_rule_scorer(api):
     result = get(api, "effectiveness", rescale_family="Healthcare")
     assert result["rescale_factor"] == about(4.06, 0.005)
     assert result["rule"]["auc"] == about(0.762)
+    # ANALYSIS: 772 of the 1,239 decided Healthcare applications leave "low", converting at 62.6%.
+    assert result["rescale_effect"]["decided"] == 1239
+    assert result["rescale_effect"]["moved_out_of_low"] == 772
+    assert result["rescale_effect"]["moved_positive_rate"] == about(0.626)
 
 
 def test_rule_beats_llm_significantly_without_healthcare(api):

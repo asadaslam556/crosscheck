@@ -135,16 +135,30 @@ def effectiveness(
     llm_scores = [row["llm_score"] for row in rows]
 
     factor = rescale_factor(session, rescale_family) if rescale_family else None
+    effect = None
     if factor:
         rule_scores = [
             min(score * factor, 1.0) if row["job_family"] == rescale_family else score
             for row, score in zip(rows, rule_scores, strict=True)
         ]
+        # 0.5 is where rule_fit moves from "low" to "medium".
+        family = [
+            (row["label"], score)
+            for row, score in zip(rows, rule_scores, strict=True)
+            if row["job_family"] == rescale_family
+        ]
+        moved = [label for label, score in family if score >= 0.5]
+        effect = {
+            "decided": len(family),
+            "moved_out_of_low": len(moved),
+            "moved_positive_rate": sum(moved) / len(moved) if moved else None,
+        }
 
     return {
         "excluded_job_family": exclude_family,
         "rescaled_job_family": rescale_family if factor else None,
         "rescale_factor": factor,
+        "rescale_effect": effect,
         "distribution_by_decision": queries.run(
             session, "score_distribution", exclude_family=exclude_family
         ),
