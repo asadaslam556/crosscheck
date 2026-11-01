@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.0
+
+- Jev (`jev-1.14.0`) scored all 5,496 decided applications, and the results are committed. It ranks below both production scorers (AUC 0.671), its probabilities run low, and as a tiebreaker it is a coin flip, but it repeats none of the LLM's biases.
+- The Third opinion page leads with that summary, and no chart clips its 100% label any more.
+
 ## 2.0.0
 
 What I built after the take-home was submitted. The conclusions are the same, with more evidence behind them.
@@ -11,7 +16,7 @@ What I built after the take-home was submitted. The conclusions are the same, wi
 - A threshold sweep per model version. A v2 threshold of 78 restores v1's flag rate.
 - Monthly drift against the first three months, with the rule scorer as the control.
 - Disagreement triage: about half of the 1,872 disagreements trace back to a known defect.
-- A third opinion from TypeSafe's Jev, graded on the same yardstick: AUC 0.671, a coin flip as a tiebreaker, and none of the LLM's biases.
+- Optional third opinion from TypeSafe's Jev, graded on the same yardstick.
 - A data-quality endpoint that backs each assumption with a number.
 
 **Fixes**
